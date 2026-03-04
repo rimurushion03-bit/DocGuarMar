@@ -679,7 +679,7 @@ body {
     <div class="panel">
       <div class="panel-title"><span>🗑️</span> Zona Berbahaya</div>
       <button class="btn btn-danger" onclick="hapusSemua()">🗑️ Hapus Semua Data</button>
-      <button class="btn btn-danger" onclick="resetSW()" style="margin-top:10px">🔄 Reset Service Worker</button>
+      <button class="btn btn-ghost" onclick="checkUpdate()" style="margin-top:10px">🔄 Cek & Update Versi</button>
     </div>
 
     <div class="panel">
@@ -689,16 +689,6 @@ body {
       </button>
       <p style="font-size:11px;color:var(--muted)">Jika tombol tidak muncul, gunakan menu Chrome ⋮ → <strong style="color:var(--sky)">Tambahkan ke layar utama</strong></p>
     </div>
-
-    <div class="panel">
-      <div class="panel-title"><span>🔧</span> PWA Diagnostik</div>
-      <div id="pwaDiag"></div>
-      <button class="btn btn-ghost" onclick="runPWADiag()" style="margin-top:12px;font-size:12px">🔍 Cek Ulang</button>
-    </div>
-
-    <div class="version-badge">DocGuard Maritime Pro · v2.0 · by Hariyanto SJ13</div>
-
-</div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
@@ -852,7 +842,7 @@ function switchTab(tab) {
   document.getElementById(`tab-${tab}`).classList.add('active');
   document.getElementById(`nav-${tab}`).classList.add('active');
   if (tab === 'timeline') renderTimeline();
-  if (tab === 'settings') { renderStatsDetail(); setTimeout(() => { if(document.getElementById('pwaDiag')) runPWADiag(); }, 400); }
+  if (tab === 'settings') renderStatsDetail();
 }
 
 // ===========================
@@ -1410,23 +1400,24 @@ function importData() {
 
 
 // ===========================
-// RESET SERVICE WORKER
+// CHECK UPDATE
 // ===========================
-async function resetSW() {
+async function checkUpdate() {
   if (!('serviceWorker' in navigator)) { toast('SW tidak didukung browser ini', 'error'); return; }
   try {
-    // Unregister all SW
-    const regs = await navigator.serviceWorker.getRegistrations();
-    for (let reg of regs) await reg.unregister();
-
-    // Clear all caches
-    const keys = await caches.keys();
-    for (let key of keys) await caches.delete(key);
-
-    toast('✅ Service Worker berhasil direset! Halaman akan reload...', 'success', 2500);
-    setTimeout(() => location.reload(true), 2500);
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) { toast('SW belum terdaftar', 'error'); return; }
+    toast('🔍 Memeriksa update...', 'info', 2000);
+    await reg.update();
+    if (reg.waiting) {
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      toast('✅ Update ditemukan! Halaman akan reload...', 'success', 2500);
+      setTimeout(() => location.reload(true), 2500);
+    } else {
+      toast('✅ Aplikasi sudah versi terbaru!', 'success');
+    }
   } catch(e) {
-    toast('Gagal reset SW: ' + e.message, 'error');
+    toast('Gagal cek update: ' + e.message, 'error');
   }
 }
 
@@ -1457,56 +1448,6 @@ async function installApp() {
   if (btn) btn.style.display = 'none';
 }
 
-// ===========================
-// PWA DIAGNOSTIK
-// ===========================
-async function runPWADiag() {
-  const el = document.getElementById('pwaDiag');
-  if (!el) return;
-  el.innerHTML = '<p style="color:var(--muted);font-size:12px">Mengecek...</p>';
-  try {
-  const checks = [];
-
-  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  checks.push({ label: 'HTTPS / localhost', ok: isSecure, info: location.origin });
-
-  const swSupport = 'serviceWorker' in navigator;
-  checks.push({ label: 'SW didukung browser', ok: swSupport });
-
-  let swActive = false, swInfo = 'Tidak terdaftar';
-  if (swSupport) {
-    try {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        swActive = true;
-        const s = reg.active ? 'active' : reg.installing ? 'installing' : reg.waiting ? 'waiting' : 'unknown';
-        swInfo = 'Status: ' + s + ' · Scope: ' + reg.scope;
-      }
-    } catch(e) { swInfo = e.message; }
-  }
-  checks.push({ label: 'Service Worker terdaftar', ok: swActive, info: swInfo });
-
-  const manifestLink = document.querySelector('link[rel="manifest"]');
-  checks.push({ label: 'manifest.json terhubung', ok: !!manifestLink, info: manifestLink ? manifestLink.href : 'Tidak ditemukan' });
-  checks.push({ label: 'Install prompt siap', ok: !!window._installPrompt, info: window._installPrompt ? '✅ Prompt tersedia!' : 'Belum dipicu Chrome (normal)' });
-
-  el.innerHTML = checks.map(c => `
-    <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:14px;flex-shrink:0">${c.ok ? '✅' : '❌'}</span>
-      <div>
-        <div style="font-size:12px;font-weight:600;color:${c.ok ? 'var(--success)' : 'var(--danger)'}">${c.label}</div>
-        ${c.info ? '<div style="font-size:10px;color:var(--muted);margin-top:2px;word-break:break-all">' + c.info + '</div>' : ''}
-      </div>
-    </div>`).join('');
-
-  const allOk = checks.every(c => c.ok);
-  el.innerHTML += `<div style="margin-top:12px;padding:10px;border-radius:10px;background:${allOk ? 'rgba(0,229,160,0.08)' : 'rgba(255,181,71,0.08)'};border:1px solid ${allOk ? 'rgba(0,229,160,0.2)' : 'rgba(255,181,71,0.2)'};font-size:12px;color:${allOk ? 'var(--success)' : 'var(--warn)'}">
-    ${allOk ? '🎉 Semua syarat terpenuhi! Coba buka menu Chrome → Install App.' : '⚠️ Ada syarat yang belum terpenuhi. Perbaiki item ❌ di atas.'}
-  </div>`;
-  } catch(err) {
-    el.innerHTML = '<p style="color:var(--danger);font-size:12px">❌ Error: ' + err.message + '</p>';
-  }
-}
 
 </script>
 </body>
