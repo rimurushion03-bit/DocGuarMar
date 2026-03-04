@@ -1,0 +1,59 @@
+{
+  "name": "DocGuard Maritime Pro",
+  "short_name": "DocGuard",
+  "description": "Sistem Manajemen Dokumen Kapal & Kru by Hariyanto SJ13",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#060e1c",
+  "theme_color": "#0f4c81",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tambah Dokumen",
+      "short_name": "Tambah",
+      "description": "Tambah dokumen baru",
+      "url": "./index.html#add",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Lihat Expired",
+      "short_name": "Expired",
+      "description": "Cek dokumen yang kadaluarsa",
+      "url": "./index.html#expired",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

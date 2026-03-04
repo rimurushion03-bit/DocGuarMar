@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocGuard Maritime Pro</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DocGuard">
+<meta name="theme-color" content="#0f4c81">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<!-- SEO & Share -->
+<meta name="description" content="Sistem Manajemen Dokumen Kapal & Kru by Hariyanto SJ13">
+<meta property="og:title" content="DocGuard Maritime Pro">
+<meta property="og:description" content="Kelola dokumen kapal & kru dengan mudah, offline-ready.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sea: #0a1628;
+  --deep: #060e1c;
+  --hull: #0d2847;
+  --wave: #0f4c81;
+  --foam: #1a6eb5;
+  --sky: #3b9eff;
+  --glow: #5bbbff;
+  --horizon: #a8d8ff;
+  --gold: #f5a623;
+  --amber: #ff8c00;
+  --danger: #ff3b5c;
+  --success: #00e5a0;
+  --warn: #ffb547;
+  --text: #e8f4ff;
+  --muted: #7aa8cc;
+  --card: rgba(13,40,71,0.85);
+  --glass: rgba(15,76,129,0.2);
+  --border: rgba(91,187,255,0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === ANIMATED BACKGROUND === */
+.ocean-bg {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(160deg, #060e1c 0%, #0a1a35 40%, #081525 100%);
+  z-index: 0;
+  overflow: hidden;
+}
+.ocean-bg::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59,158,255,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse 40% 30% at 80% 90%, rgba(245,166,35,0.06) 0%, transparent 50%);
+}
+.wave-line {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(91,187,255,0.3), transparent);
+  animation: waveMove 6s ease-in-out infinite;
+}
+.wave-line:nth-child(2) { bottom: 20px; animation-delay: -2s; opacity: 0.5; }
+.wave-line:nth-child(3) { bottom: 40px; animation-delay: -4s; opacity: 0.3; }
+@keyframes waveMove { 0%,100%{transform:scaleX(0.8) translateX(-5%)} 50%{transform:scaleX(1.1) translateX(5%)} }
+
+/* === STAR PARTICLES === */
+.stars {
+  position: absolute; inset: 0;
+  background-image: 
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 8%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 20%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 5%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 18%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 20% 35%, rgba(91,187,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 40%, rgba(255,255,255,0.2) 0%, transparent 100%);
+}
+
+/* === LAYOUT === */
+#app { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 20px 16px 100px; }
+
+/* === HEADER === */
+.header {
+  text-align: center;
+  padding: 30px 0 25px;
+  animation: fadeDown 0.6s ease both;
+}
+.logo-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, var(--wave), var(--foam));
+  border-radius: 20px;
+  font-size: 28px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 30px rgba(15,76,129,0.6), 0 0 0 1px rgba(91,187,255,0.2);
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{box-shadow:0 8px 30px rgba(15,76,129,0.6),0 0 0 1px rgba(91,187,255,0.2)} 50%{box-shadow:0 8px 40px rgba(59,158,255,0.5),0 0 0 1px rgba(91,187,255,0.4)} }
+.header h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff 0%, var(--glow) 60%, var(--gold) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.header p { color: var(--muted); font-size: 12px; margin-top: 4px; letter-spacing: 0.5px; }
+
+/* === STATS BAR === */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+  margin-bottom: 20px;
+  animation: fadeUp 0.5s ease 0.2s both;
+}
+.stat-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 10px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s, border-color 0.2s;
+}
+.stat-item:hover { transform: translateY(-2px); border-color: rgba(91,187,255,0.35); }
+.stat-num { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; line-height: 1; }
+.stat-label { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* === SEARCH BAR === */
+.search-wrap {
+  position: sticky; top: 10px; z-index: 50;
+  margin-bottom: 18px;
+  animation: fadeUp 0.5s ease 0.3s both;
+}
+.search-inner {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(13,40,71,0.95);
+  border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 10px 16px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(91,187,255,0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-wrap:focus-within .search-inner {
+  border-color: rgba(91,187,255,0.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 20px rgba(59,158,255,0.1);
+}
+.search-inner input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif;
+}
+.search-inner input::placeholder { color: var(--muted); }
+.search-icon { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+.sort-btn {
+  background: var(--glass); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 8px; padding: 5px 10px;
+  cursor: pointer; font-size: 11px; font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s; white-space: nowrap;
+}
+.sort-btn:hover { background: rgba(59,158,255,0.15); color: var(--sky); }
+.sort-btn.active { background: rgba(59,158,255,0.2); color: var(--sky); border-color: rgba(91,187,255,0.4); }
+
+/* === FILTER TABS === */
+.filter-tabs {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+  margin-bottom: 18px; scrollbar-width: none;
+  animation: fadeUp 0.5s ease 0.35s both;
+}
+.filter-tabs::-webkit-scrollbar { display: none; }
+.ftab {
+  flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--glass); color: var(--muted);
+  transition: all 0.2s; white-space: nowrap;
+}
+.ftab.active {
+  background: rgba(59,158,255,0.2); color: var(--sky);
+  border-color: rgba(91,187,255,0.5);
+}
+
+/* === PANEL / CARD GLASS === */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 22px;
+  backdrop-filter: blur(12px);
+  margin-bottom: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  animation: fadeUp 0.5s ease 0.4s both;
+}
+.panel-title {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.panel-title span { font-size: 15px; }
+
+/* === FORM ELEMENTS === */
+.field-group { margin-bottom: 14px; }
+.field-label {
+  display: flex; justify-content: space-between;
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;
+}
+.field-input, .field-select {
+  width: 100%; padding: 11px 14px;
+  background: rgba(6,14,28,0.6); color: var(--text);
+  border: 1.5px solid rgba(91,187,255,0.15); border-radius: 10px;
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+.field-input:focus, .field-select:focus {
+  border-color: rgba(91,187,255,0.5);
+  box-shadow: 0 0 0 3px rgba(59,158,255,0.08);
+}
+.field-select option { background: var(--hull); }
+
+/* === FILE DROP ZONE === */
+.drop-zone {
+  border: 2px dashed rgba(91,187,255,0.25);
+  border-radius: 12px; padding: 20px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s; position: relative;
+  background: rgba(6,14,28,0.4);
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: rgba(91,187,255,0.6);
+  background: rgba(59,158,255,0.06);
+}
+.drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.drop-icon { font-size: 28px; margin-bottom: 8px; }
+.drop-text { font-size: 12px; color: var(--muted); }
+.drop-text strong { color: var(--sky); }
+.file-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.file-chip {
+  background: rgba(59,158,255,0.1); border: 1px solid rgba(91,187,255,0.25);
+  color: var(--sky); padding: 4px 10px; border-radius: 6px;
+  font-size: 11px; display: flex; align-items: center; gap: 5px;
+}
+.file-chip button { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 13px; padding: 0; line-height: 1; }
+
+/* === BUTTONS === */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 13px; border-radius: 12px; border: none;
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+}
+.btn-sea {
+  background: linear-gradient(135deg, var(--wave) 0%, var(--foam) 100%);
+  color: white;
+  box-shadow: 0 6px 20px rgba(15,76,129,0.5);
+}
+.btn-sea:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,76,129,0.65); }
+.btn-sea:active { transform: translateY(0); }
+.btn-ghost {
+  background: var(--glass); border: 1.5px solid var(--border);
+  color: var(--muted);
+}
+.btn-ghost:hover { border-color: rgba(91,187,255,0.35); color: var(--text); }
+.btn-danger { background: rgba(255,59,92,0.12); border: 1px solid rgba(255,59,92,0.25); color: var(--danger); }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.btn-notif {
+  background: rgba(245,166,35,0.1); border: 1.5px solid rgba(245,166,35,0.25);
+  color: var(--gold); width: 100%; padding: 11px; border-radius: 10px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  margin-bottom: 14px;
+}
+.btn-notif:hover { background: rgba(245,166,35,0.18); }
+.btn-notif.active { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.3); color: var(--success); }
+
+/* === DOC CARD === */
+.doc-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px; padding: 18px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(10px);
+  position: relative; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  animation: cardIn 0.4s ease both;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+.doc-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+.doc-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  border-radius: 18px 0 0 18px;
+}
+.doc-card.status-ok::before { background: var(--success); }
+.doc-card.status-warn::before { background: var(--warn); }
+.doc-card.status-danger::before { background: var(--danger); }
+.doc-card.status-ok { border-color: rgba(0,229,160,0.15); }
+.doc-card.status-warn { border-color: rgba(255,181,71,0.15); }
+.doc-card.status-danger { border-color: rgba(255,59,92,0.2); }
+
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.card-badge {
+  font-size: 10px; padding: 3px 9px; border-radius: 5px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+  background: var(--glass); color: var(--sky); border: 1px solid var(--border);
+}
+.days-pill {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+}
+.days-pill.ok { background: rgba(0,229,160,0.12); color: var(--success); }
+.days-pill.warn { background: rgba(255,181,71,0.12); color: var(--warn); }
+.days-pill.danger { background: rgba(255,59,92,0.15); color: var(--danger); }
+
+.card-name {
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+  color: var(--text); margin-bottom: 4px;
+}
+.card-meta { font-size: 11px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+.card-meta span { display: flex; align-items: center; gap: 4px; }
+
+.thumb-row { display: flex; gap: 8px; margin: 12px 0; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.thumb-row::-webkit-scrollbar { display: none; }
+.img-thumb {
+  width: 70px; height: 70px; border-radius: 10px; object-fit: cover;
+  border: 1.5px solid var(--border); flex-shrink: 0; cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.img-thumb:hover { transform: scale(1.05); border-color: var(--sky); }
+.pdf-thumb {
+  width: 70px; height: 70px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(255,59,92,0.08); border: 1.5px solid rgba(255,59,92,0.2);
+  color: #ff6b8a; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; cursor: pointer;
+  font-size: 9px; font-weight: 700; gap: 3px; transition: all 0.2s;
+}
+.pdf-thumb:hover { background: rgba(255,59,92,0.15); border-color: rgba(255,59,92,0.4); }
+.pdf-thumb .pdf-icon { font-size: 24px; }
+
+.card-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.action-btn {
+  flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--glass); color: var(--muted); cursor: pointer;
+  font-size: 13px; transition: all 0.2s; display: flex;
+  align-items: center; justify-content: center; gap: 5px;
+  font-size: 11px; font-family: 'DM Sans', sans-serif;
+}
+.action-btn:hover { background: rgba(59,158,255,0.1); color: var(--sky); border-color: rgba(91,187,255,0.3); }
+.action-btn.del:hover { background: rgba(255,59,92,0.1); color: var(--danger); border-color: rgba(255,59,92,0.3); }
+
+/* === PROGRESS BAR === */
+.validity-bar { margin: 10px 0 0; }
+.validity-track { background: rgba(255,255,255,0.06); border-radius: 4px; height: 4px; overflow: hidden; }
+.validity-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.validity-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* === EMPTY STATE === */
+.empty-state {
+  text-align: center; padding: 50px 20px;
+  animation: fadeUp 0.5s ease both;
+}
+.empty-icon { font-size: 52px; margin-bottom: 14px; opacity: 0.5; }
+.empty-state h3 { font-family: 'Syne', sans-serif; font-size: 18px; color: var(--muted); margin-bottom: 8px; }
+.empty-state p { font-size: 13px; color: rgba(122,168,204,0.6); }
+
+/* === TOAST === */
+.toast-wrap { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast {
+  padding: 12px 20px; border-radius: 12px;
+  font-size: 13px; font-weight: 500; white-space: nowrap;
+  backdrop-filter: blur(20px); pointer-events: auto;
+  animation: toastIn 0.3s ease;
+  display: flex; align-items: center; gap: 8px;
+}
+.toast.success { background: rgba(0,229,160,0.15); border: 1px solid rgba(0,229,160,0.3); color: var(--success); }
+.toast.error { background: rgba(255,59,92,0.15); border: 1px solid rgba(255,59,92,0.3); color: var(--danger); }
+.toast.info { background: rgba(59,158,255,0.15); border: 1px solid rgba(91,187,255,0.3); color: var(--sky); }
+@keyframes toastIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+
+/* === MODAL IMAGE === */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.92); z-index: 1000;
+  justify-content: center; align-items: center;
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.open { display: flex; }
+.modal-overlay img { max-width: 92%; max-height: 85vh; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
+.modal-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+
+/* === EDIT MODAL === */
+.edit-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85); z-index: 900;
+  justify-content: center; align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.edit-modal-overlay.open { display: flex; }
+.edit-modal-sheet {
+  background: #0a1a35;
+  border: 1px solid rgba(91,187,255,0.2);
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 520px;
+  padding: 24px 20px 40px;
+  animation: slideUp 0.3s ease;
+  max-height: 90vh; overflow-y: auto;
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:none} }
+.sheet-handle { width: 40px; height: 4px; background: rgba(91,187,255,0.2); border-radius: 2px; margin: 0 auto 20px; }
+.sheet-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+
+/* === DETAIL MODAL === */
+.detail-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85); z-index: 900;
+  justify-content: center; align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.detail-modal-overlay.open { display: flex; }
+.detail-modal-sheet {
+  background: #0a1a35;
+  border: 1px solid rgba(91,187,255,0.2);
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 520px;
+  padding: 24px 20px 40px;
+  animation: slideUp 0.3s ease;
+  max-height: 90vh; overflow-y: auto;
+}
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.detail-row:last-child { border-bottom: none; }
+.detail-key { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+.detail-val { font-size: 13px; font-weight: 600; color: var(--text); text-align: right; max-width: 60%; }
+
+/* === SECTION HEADER === */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  color: var(--text);
+}
+.section-count { font-size: 11px; color: var(--muted); background: var(--glass); padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); }
+
+/* === ANIMATIONS === */
+@keyframes fadeDown { from{opacity:0;transform:translateY(-15px)} to{opacity:1;transform:none} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:none} }
+
+/* === PROGRESS RING === */
+.progress-ring { position: relative; width: 48px; height: 48px; }
+.progress-ring svg { transform: rotate(-90deg); }
+.progress-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 3; }
+.progress-ring .ring-fill { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+
+/* === PINNED INDICATOR === */
+.pin-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.4; transition: opacity 0.2s, transform 0.2s; }
+.pin-btn.pinned { opacity: 1; transform: rotate(-45deg); }
+
+/* === TIMELINE === */
+.timeline { position: relative; }
+.timeline::before { content: ''; position: absolute; left: 14px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.tl-item { display: flex; gap: 12px; margin-bottom: 10px; position: relative; }
+.tl-dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; border: 2px solid var(--border); background: var(--hull); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.tl-dot.ok { border-color: var(--success); }
+.tl-dot.warn { border-color: var(--warn); }
+.tl-dot.danger { border-color: var(--danger); }
+.tl-content { padding-top: 4px; }
+.tl-name { font-size: 13px; font-weight: 600; }
+.tl-date { font-size: 11px; color: var(--muted); }
+
+/* === BOTTOM NAV === */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 520px; z-index: 100;
+  background: rgba(10,26,53,0.95); border-top: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  display: flex; padding: 10px 20px 20px;
+  gap: 5px;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 8px 4px; border-radius: 12px;
+  cursor: pointer; transition: all 0.2s; border: none; background: none;
+  color: var(--muted); font-family: 'DM Sans', sans-serif;
+}
+.nav-icon { font-size: 20px; transition: transform 0.2s; }
+.nav-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.nav-item.active { color: var(--sky); background: rgba(59,158,255,0.1); }
+.nav-item.active .nav-icon { transform: scale(1.15); }
+.nav-item:hover:not(.active) { color: var(--horizon); background: var(--glass); }
+
+/* === TABS === */
+.tab-section { display: none; }
+.tab-section.active { display: block; }
+
+/* === TIMELINE TAB === */
+.upcoming-header {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+  padding: 12px 0 8px; margin-top: 6px;
+}
+
+/* === SETTINGS === */
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-info h4 { font-size: 13px; font-weight: 600; color: var(--text); }
+.setting-info p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.toggle {
+  width: 42px; height: 24px; background: var(--glass); border-radius: 12px;
+  border: 1.5px solid var(--border); cursor: pointer; position: relative;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--muted); transition: all 0.2s;
+}
+.toggle.on { background: rgba(0,229,160,0.2); border-color: rgba(0,229,160,0.5); }
+.toggle.on::after { transform: translateX(18px); background: var(--success); }
+.version-badge { font-size: 11px; color: var(--muted); text-align: center; padding: 20px; }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--wave); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="ocean-bg">
+  <div class="stars"></div>
+  <div class="wave-line"></div>
+  <div class="wave-line"></div>
+  <div class="wave-line"></div>
+</div>
+
+<div id="app">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-mark">⚓</div>
+    <h1>DocGuard Maritime</h1>
+    <p>Sistem Manajemen Dokumen Kapal & Kru · Pro Edition</p>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-item"><div class="stat-num" id="statTotal" style="color:var(--sky)">0</div><div class="stat-label">Total Dok.</div></div>
+    <div class="stat-item"><div class="stat-num" id="statWarn" style="color:var(--warn)">0</div><div class="stat-label">Hampir Exp.</div></div>
+    <div class="stat-item"><div class="stat-num" id="statExpired" style="color:var(--danger)">0</div><div class="stat-label">Expired</div></div>
+  </div>
+
+  <!-- ===== TAB: DOKUMEN ===== -->
+  <div class="tab-section active" id="tab-docs">
+    <div class="search-wrap">
+      <div class="search-inner">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cari nama, kategori, nomor..." oninput="renderList()">
+        <button class="sort-btn" id="sortBtn" onclick="toggleSort()">Sort ↕</button>
+      </div>
+    </div>
+    <div class="filter-tabs" id="filterTabs">
+      <div class="ftab active" onclick="setFilter('Semua', this)">Semua</div>
+      <div class="ftab" onclick="setFilter('Dokumen Kapal', this)">🚢 Kapal</div>
+      <div class="ftab" onclick="setFilter('Dokumen Pribadi Maritim', this)">⚓ Maritim</div>
+      <div class="ftab" onclick="setFilter('Dokumen non Maritim', this)">🪪 Non-Maritim</div>
+      <div class="ftab" onclick="setFilter('Lainnya', this)">📦 Lainnya</div>
+      <div class="ftab" onclick="setFilter('__expired__', this)">⚠️ Expired</div>
+    </div>
+    <div id="listContainer"></div>
+  </div>
+
+  <!-- ===== TAB: TAMBAH ===== -->
+  <div class="tab-section" id="tab-add">
+    <div class="panel">
+      <div class="panel-title"><span>🔔</span> Notifikasi</div>
+      <button class="btn-notif" id="notifBtn" onclick="mintaIzinNotif()">🔔 Aktifkan Pengingat Notifikasi</button>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span>📋</span> Tambah Dokumen Baru</div>
+      <div class="field-group">
+        <div class="field-label">Kategori Dokumen</div>
+        <select class="field-select" id="certCat">
+          <option value="Dokumen Kapal">🚢 Dokumen Kapal (SIUPAL, NTR, BKI)</option>
+          <option value="Dokumen Pribadi Maritim">⚓ Dokumen Pribadi Maritim (BST, Buku Pelaut, CoC)</option>
+          <option value="Dokumen non Maritim">🪪 Dokumen non Maritim (KTP, SIM, NPWP)</option>
+          <option value="Lainnya">📦 Lain-lain</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Nama Dokumen <span style="color:var(--danger)">*</span></div>
+        <input class="field-input" type="text" id="certName" placeholder="Contoh: Surat Ukur / Paspor">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Nomor Seri / Sertifikat</div>
+        <input class="field-input" type="text" id="serialNum" placeholder="No. Sertifikat (opsional)">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Tanggal Terbit <span style="font-size:10px;font-weight:400">(opsional)</span></div>
+        <input class="field-input" type="date" id="issueDate">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Tanggal Kadaluarsa <span style="color:var(--danger)">*</span></div>
+        <input class="field-input" type="date" id="expDate">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Catatan</div>
+        <input class="field-input" type="text" id="notes" placeholder="Catatan tambahan (opsional)">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Lampiran Foto / PDF <span style="font-size:10px;font-weight:400">(opsional)</span></div>
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*, application/pdf" multiple onchange="handleFiles(this.files)">
+          <div class="drop-icon">📎</div>
+          <div class="drop-text">Tap untuk pilih atau drag & drop<br><strong>Foto atau PDF</strong></div>
+        </div>
+        <div class="file-chips" id="fileChips"></div>
+      </div>
+      <button class="btn btn-sea" onclick="saveDoc()" style="margin-top:6px">
+        <span>💾</span> SIMPAN DOKUMEN
+      </button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span>💼</span> Backup & Restore</div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="exportData()">⬇️ Backup JSON</button>
+        <label class="btn btn-ghost" style="cursor:pointer; position:relative;">
+          ⬆️ Restore
+          <input type="file" id="importFile" accept=".json" onchange="importData()" style="position:absolute;opacity:0;inset:0;cursor:pointer;width:100%">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: KALENDER ===== -->
+  <div class="tab-section" id="tab-timeline">
+    <div class="panel">
+      <div class="panel-title"><span>📅</span> Kalender Kadaluarsa</div>
+      <div id="timelineContent"></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: SETTINGS ===== -->
+  <div class="tab-section" id="tab-settings">
+    <div class="panel">
+      <div class="panel-title"><span>⚙️</span> Pengaturan</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Notifikasi Push</h4>
+          <p>Pengingat otomatis H-30 & H-7</p>
+        </div>
+        <div class="toggle" id="toggleNotif" onclick="mintaIzinNotif()"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Peringatan Expired</h4>
+          <p>Tampilkan dokumen expired di atas</p>
+        </div>
+        <div class="toggle on" id="toggleExpFirst" onclick="this.classList.toggle('on'); renderList()"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span>📊</span> Statistik Dokumen</div>
+      <div id="statsDetail"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span>🗑️</span> Zona Berbahaya</div>
+      <button class="btn btn-danger" onclick="hapusSemua()">🗑️ Hapus Semua Data</button>
+      <button class="btn btn-danger" onclick="resetSW()" style="margin-top:10px">🔄 Reset Service Worker</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span>📲</span> Install App</div>
+      <button id="btnInstallApp" class="btn btn-sea" style="display:none;margin-bottom:12px" onclick="installApp()">
+        📲 Install DocGuard ke HP
+      </button>
+      <p style="font-size:11px;color:var(--muted)">Jika tombol tidak muncul, gunakan menu Chrome ⋮ → <strong style="color:var(--sky)">Tambahkan ke layar utama</strong></p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span>🔧</span> PWA Diagnostik</div>
+      <div id="pwaDiag"></div>
+      <button class="btn btn-ghost" onclick="runPWADiag()" style="margin-top:12px;font-size:12px">🔍 Cek Ulang</button>
+    </div>
+
+    <div class="version-badge">DocGuard Maritime Pro · v2.0 · by Hariyanto SJ13</div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-docs" onclick="switchTab('docs')">
+    <span class="nav-icon">📁</span><span class="nav-label">Dokumen</span>
+  </button>
+  <button class="nav-item" id="nav-add" onclick="switchTab('add')">
+    <span class="nav-icon">➕</span><span class="nav-label">Tambah</span>
+  </button>
+  <button class="nav-item" id="nav-timeline" onclick="switchTab('timeline')">
+    <span class="nav-icon">📅</span><span class="nav-label">Kalender</span>
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+    <span class="nav-icon">⚙️</span><span class="nav-label">Setelan</span>
+  </button>
+</nav>
+
+<!-- IMAGE MODAL -->
+<div class="modal-overlay" id="imageModal" onclick="this.classList.remove('open')">
+  <button class="modal-close" onclick="event.stopPropagation(); document.getElementById('imageModal').classList.remove('open')">✕</button>
+  <img id="modalImg" src="" alt="">
+</div>
+
+<!-- EDIT MODAL -->
+<div class="edit-modal-overlay" id="editModal" onclick="if(event.target===this)closeEdit()">
+  <div class="edit-modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">✏️ Edit Dokumen</div>
+    <input type="hidden" id="editId">
+    <div class="field-group">
+      <div class="field-label">Kategori</div>
+      <select class="field-select" id="editCat">
+        <option value="Dokumen Kapal">🚢 Dokumen Kapal</option>
+        <option value="Dokumen Pribadi Maritim">⚓ Dokumen Pribadi Maritim</option>
+        <option value="Dokumen non Maritim">🪪 Dokumen non Maritim</option>
+        <option value="Lainnya">📦 Lain-lain</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Nama Dokumen</div>
+      <input class="field-input" type="text" id="editName">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Nomor Seri</div>
+      <input class="field-input" type="text" id="editSerial">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Tanggal Terbit</div>
+      <input class="field-input" type="date" id="editIssue">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Tanggal Kadaluarsa</div>
+      <input class="field-input" type="date" id="editExp">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Catatan</div>
+      <input class="field-input" type="text" id="editNotes">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn btn-ghost" onclick="closeEdit()" style="flex:1">Batal</button>
+      <button class="btn btn-sea" onclick="saveEdit()" style="flex:2">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="detail-modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="detailTitle">Detail Dokumen</div>
+    <div id="detailContent"></div>
+    <button class="btn btn-ghost" onclick="closeDetail()" style="margin-top:16px">Tutup</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ===========================
+// DATABASE
+// ===========================
+let db;
+const request = indexedDB.open("DocGuardMaritime_v2", 2);
+request.onupgradeneeded = (e) => {
+  db = e.target.result;
+  if (!db.objectStoreNames.contains("docs")) {
+    const store = db.createObjectStore("docs", { keyPath: "id", autoIncrement: true });
+    store.createIndex("cat", "cat", { unique: false });
+    store.createIndex("date", "date", { unique: false });
+  }
+};
+request.onsuccess = (e) => {
+  db = e.target.result;
+  renderList();
+  renderTimeline();
+  updateStats();
+  checkNotifPermission();
+  scheduleDailyCheck();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('[SW] Registered:', reg.scope);
+        // Cek update SW
+        reg.onupdatefound = () => {
+          const newWorker = reg.installing;
+          newWorker.onstatechange = () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              toast('🔄 Update tersedia, refresh untuk memperbarui', 'info', 5000);
+            }
+          };
+        };
+        // Tampilkan status SW di stats bar
+      })
+      .catch(err => {
+        console.warn('[SW] Gagal:', err);
+      });
+  } else {
+  }
+};
+request.onerror = () => toast("Gagal membuka database!", "error");
+
+// ===========================
+// STATE
+// ===========================
+let currentFilter = 'Semua';
+let sortMode = 'date'; // 'date' or 'name'
+let sortAsc = true;
+let selectedFiles = [];
+let editingDoc = null;
+
+// ===========================
+// TOAST
+// ===========================
+function toast(msg, type = 'info', duration = 3000) {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  el.className = `toast ${type}`;
+  el.innerHTML = `${icons[type] || ''} ${msg}`;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, duration);
+}
+
+// ===========================
+// NAVIGATION
+// ===========================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.getElementById(`nav-${tab}`).classList.add('active');
+  if (tab === 'timeline') renderTimeline();
+  if (tab === 'settings') { renderStatsDetail(); setTimeout(() => { if(document.getElementById('pwaDiag')) runPWADiag(); }, 400); }
+}
+
+// ===========================
+// FILTERS & SORT
+// ===========================
+function setFilter(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.ftab').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+function toggleSort() {
+  if (sortMode === 'date') { sortMode = 'name'; sortAsc = true; }
+  else if (sortMode === 'name' && sortAsc) { sortMode = 'name'; sortAsc = false; }
+  else { sortMode = 'date'; sortAsc = true; }
+  const btn = document.getElementById('sortBtn');
+  btn.textContent = sortMode === 'date' ? 'Sort ↕' : (sortAsc ? 'A→Z' : 'Z→A');
+  btn.classList.toggle('active', sortMode !== 'date');
+  renderList();
+}
+
+// ===========================
+// FILE HANDLING
+// ===========================
+function handleFiles(files) {
+  for (let f of files) selectedFiles.push(f);
+  renderFileChips();
+}
+function renderFileChips() {
+  const el = document.getElementById('fileChips');
+  el.innerHTML = selectedFiles.map((f, i) => `
+    <div class="file-chip">
+      ${f.type === 'application/pdf' ? '📄' : '🖼️'} ${f.name.length > 18 ? f.name.slice(0,18)+'…' : f.name}
+      <button onclick="removeFile(${i})">×</button>
+    </div>`).join('');
+}
+function removeFile(i) { selectedFiles.splice(i, 1); renderFileChips(); }
+
+// Setup drag & drop
+window.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('dropZone');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+  });
+});
+
+// ===========================
+// COMPRESS IMAGE
+// ===========================
+function compressImage(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const max = 1200; let w = img.width, h = img.height;
+        if (w > h && w > max) { h = Math.round(h * max / w); w = max; }
+        else if (h > max) { w = Math.round(w * max / h); h = max; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(resolve, 'image/jpeg', 0.78);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ===========================
+// SAVE DOC
+// ===========================
+async function saveDoc() {
+  const name = document.getElementById('certName').value.trim();
+  const cat = document.getElementById('certCat').value;
+  const serial = document.getElementById('serialNum').value.trim();
+  const date = document.getElementById('expDate').value;
+  const issue = document.getElementById('issueDate').value;
+  const notes = document.getElementById('notes').value.trim();
+  if (!name) { toast("Nama dokumen wajib diisi!", "error"); return; }
+  if (!date) { toast("Tanggal kadaluarsa wajib diisi!", "error"); return; }
+
+  const btn = document.querySelector('#tab-add .btn-sea');
+  btn.textContent = '⏳ Menyimpan...'; btn.disabled = true;
+
+  const attachments = [];
+  for (let file of selectedFiles) {
+    if (file.type === 'application/pdf') {
+      attachments.push({ blob: file, type: 'pdf', name: file.name });
+    } else {
+      const compressed = await compressImage(file);
+      attachments.push({ blob: compressed, type: 'image', name: file.name });
+    }
+  }
+
+  const tx = db.transaction("docs", "readwrite");
+  tx.objectStore("docs").add({ name, cat, serial, date, issue, notes, attachments, pinned: false, createdAt: Date.now() });
+  tx.oncomplete = () => {
+    toast("Dokumen berhasil disimpan! ✅", "success");
+    document.getElementById('certName').value = '';
+    document.getElementById('serialNum').value = '';
+    document.getElementById('expDate').value = '';
+    document.getElementById('issueDate').value = '';
+    document.getElementById('notes').value = '';
+    document.getElementById('fileInput').value = '';
+    selectedFiles = [];
+    renderFileChips();
+    btn.innerHTML = '<span>💾</span> SIMPAN DOKUMEN'; btn.disabled = false;
+    renderList(); updateStats(); renderTimeline();
+    switchTab('docs');
+  };
+  tx.onerror = () => { toast("Gagal menyimpan!", "error"); btn.innerHTML = '<span>💾</span> SIMPAN DOKUMEN'; btn.disabled = false; };
+}
+
+// ===========================
+// RENDER LIST
+// ===========================
+function renderList() {
+  const container = document.getElementById('listContainer');
+  if (!db) return;
+  const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const expFirst = document.getElementById('toggleExpFirst')?.classList.contains('on');
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  container.innerHTML = '';
+  const allDocs = [];
+
+  db.transaction("docs").objectStore("docs").openCursor().onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      allDocs.push(cursor.value);
+      cursor.continue();
+    } else {
+      // Filter
+      let filtered = allDocs.filter(d => {
+        const q = query;
+        const matchQ = !q || d.name.toLowerCase().includes(q) || (d.serial||'').toLowerCase().includes(q) || d.cat.toLowerCase().includes(q) || (d.notes||'').toLowerCase().includes(q);
+        const sisa = Math.ceil((new Date(d.date) - today) / 86400000);
+        const matchF = currentFilter === 'Semua' ? true :
+                       currentFilter === '__expired__' ? sisa <= 0 :
+                       d.cat === currentFilter;
+        return matchQ && matchF;
+      });
+
+      // Sort
+      if (sortMode === 'date') {
+        filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+      } else {
+        filtered.sort((a, b) => sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+      }
+
+      // Pinned first
+      filtered.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+
+      // Expired first if toggled
+      if (expFirst) {
+        const expiredDocs = filtered.filter(d => Math.ceil((new Date(d.date) - today) / 86400000) <= 0);
+        const rest = filtered.filter(d => Math.ceil((new Date(d.date) - today) / 86400000) > 0);
+        filtered = [...expiredDocs, ...rest];
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">
+          <div class="empty-icon">🌊</div>
+          <h3>Tidak ada dokumen</h3>
+          <p>${query ? 'Tidak ada hasil untuk "'+query+'"' : 'Ketuk + untuk menambahkan dokumen'}</p>
+        </div>`;
+        return;
+      }
+
+      filtered.forEach((d, idx) => {
+        const sisa = Math.ceil((new Date(d.date) - today) / 86400000);
+        const statusClass = sisa <= 0 ? 'danger' : sisa <= 60 ? 'warn' : 'ok';
+        const pillClass = statusClass;
+        const pillText = sisa <= 0 ? '⚠️ EXPIRED' : sisa <= 60 ? `⏳ ${sisa} hari` : `✅ ${sisa} hari`;
+        const expDate = new Date(d.date);
+        const expStr = expDate.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+        
+        // Validity percentage (from issue date or 1 year)
+        let pct = 100;
+        if (d.issue && d.date) {
+          const issueTs = new Date(d.issue).getTime(), expTs = new Date(d.date).getTime(), nowTs = today.getTime();
+          const total = expTs - issueTs; const elapsed = nowTs - issueTs;
+          pct = total > 0 ? Math.max(0, Math.min(100, Math.round((1 - elapsed / total) * 100))) : (sisa > 0 ? 100 : 0);
+        } else {
+          pct = sisa <= 0 ? 0 : sisa <= 365 ? Math.round(sisa / 365 * 100) : 100;
+        }
+        const fillColor = statusClass === 'ok' ? 'var(--success)' : statusClass === 'warn' ? 'var(--warn)' : 'var(--danger)';
+
+        let thumbHtml = '';
+        if (d.attachments && d.attachments.length > 0) {
+          thumbHtml = `<div class="thumb-row">` + d.attachments.map(f => {
+            const url = URL.createObjectURL(f.blob);
+            return f.type === 'pdf'
+              ? `<div class="pdf-thumb" onclick="openFile('${url}','pdf')"><div class="pdf-icon">📄</div>PDF</div>`
+              : `<img src="${url}" class="img-thumb" onclick="openFile('${url}','image')" loading="lazy">`;
+          }).join('') + `</div>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = `doc-card status-${statusClass}`;
+        card.style.animationDelay = `${idx * 0.05}s`;
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="card-badge">${d.cat.replace('Dokumen ','').replace(' Maritim','')}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="pin-btn ${d.pinned?'pinned':''}" onclick="togglePin(${d.id})" title="Pin">📌</button>
+              <span class="days-pill ${pillClass}">${pillText}</span>
+            </div>
+          </div>
+          <div class="card-name">${d.name}</div>
+          <div class="card-meta">
+            ${d.serial ? `<span>🔢 ${d.serial}</span>` : ''}
+            <span>📅 Exp: ${expStr}</span>
+            ${d.notes ? `<span>💬 ${d.notes}</span>` : ''}
+          </div>
+          ${thumbHtml}
+          <div class="validity-bar">
+            <div class="validity-track"><div class="validity-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+            <div class="validity-meta"><span>Validitas</span><span>${pct}%</span></div>
+          </div>
+          <div class="card-actions">
+            <button class="action-btn" onclick="showDetail(${d.id})">🔍 Detail</button>
+            <button class="action-btn" onclick="openEdit(${d.id})">✏️ Edit</button>
+            <button class="action-btn" onclick="shareDoc('${d.name.replace(/'/g,"\\'")}','${(d.serial||'').replace(/'/g,"\\'")}','${expStr}')">📤 Bagikan</button>
+            <button class="action-btn del" onclick="deleteDoc(${d.id})">🗑️</button>
+          </div>`;
+        container.appendChild(card);
+      });
+    }
+  };
+}
+
+// ===========================
+// UPDATE STATS
+// ===========================
+function updateStats() {
+  if (!db) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let total = 0, warn = 0, expired = 0;
+  db.transaction("docs").objectStore("docs").openCursor().onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      total++;
+      const sisa = Math.ceil((new Date(cursor.value.date) - today) / 86400000);
+      if (sisa <= 0) expired++;
+      else if (sisa <= 60) warn++;
+      cursor.continue();
+    } else {
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statWarn').textContent = warn;
+      document.getElementById('statExpired').textContent = expired;
+    }
+  };
+}
+
+// ===========================
+// STATS DETAIL
+// ===========================
+function renderStatsDetail() {
+  if (!db) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cats = {};
+  db.transaction("docs").objectStore("docs").openCursor().onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      const d = cursor.value;
+      const sisa = Math.ceil((new Date(d.date) - today) / 86400000);
+      const key = d.cat;
+      if (!cats[key]) cats[key] = { total: 0, expired: 0, warn: 0 };
+      cats[key].total++;
+      if (sisa <= 0) cats[key].expired++;
+      else if (sisa <= 60) cats[key].warn++;
+      cursor.continue();
+    } else {
+      const el = document.getElementById('statsDetail');
+      if (Object.keys(cats).length === 0) { el.innerHTML = '<p style="color:var(--muted);font-size:13px">Belum ada data</p>'; return; }
+      el.innerHTML = Object.entries(cats).map(([cat, s]) => `
+        <div class="detail-row">
+          <div class="detail-key">${cat.replace('Dokumen ','')}</div>
+          <div class="detail-val" style="display:flex;gap:8px">
+            <span style="color:var(--sky)">${s.total} dok</span>
+            ${s.expired ? `<span style="color:var(--danger)">${s.expired} exp</span>` : ''}
+            ${s.warn ? `<span style="color:var(--warn)">${s.warn} warn</span>` : ''}
+          </div>
+        </div>`).join('');
+    }
+  };
+}
+
+// ===========================
+// TIMELINE
+// ===========================
+function renderTimeline() {
+  if (!db) return;
+  const el = document.getElementById('timelineContent');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const allDocs = [];
+  db.transaction("docs").objectStore("docs").openCursor().onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) { allDocs.push(cursor.value); cursor.continue(); }
+    else {
+      allDocs.sort((a, b) => new Date(a.date) - new Date(b.date));
+      const groups = { 'Sudah Expired': [], 'Dalam 30 Hari': [], 'Dalam 3 Bulan': [], 'Lebih dari 3 Bulan': [] };
+      allDocs.forEach(d => {
+        const sisa = Math.ceil((new Date(d.date) - today) / 86400000);
+        if (sisa <= 0) groups['Sudah Expired'].push({...d, sisa});
+        else if (sisa <= 30) groups['Dalam 30 Hari'].push({...d, sisa});
+        else if (sisa <= 90) groups['Dalam 3 Bulan'].push({...d, sisa});
+        else groups['Lebih dari 3 Bulan'].push({...d, sisa});
+      });
+      let html = '';
+      for (const [group, docs] of Object.entries(groups)) {
+        if (docs.length === 0) continue;
+        const icon = group === 'Sudah Expired' ? '🔴' : group === 'Dalam 30 Hari' ? '🟡' : group === 'Dalam 3 Bulan' ? '🟠' : '🟢';
+        html += `<div class="upcoming-header">${icon} ${group} (${docs.length})</div><div class="timeline">`;
+        docs.forEach(d => {
+          const dotClass = d.sisa <= 0 ? 'danger' : d.sisa <= 30 ? 'warn' : 'ok';
+          const expStr = new Date(d.date).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+          html += `<div class="tl-item">
+            <div class="tl-dot ${dotClass}">${d.sisa <= 0 ? '⚠' : '📄'}</div>
+            <div class="tl-content">
+              <div class="tl-name">${d.name}</div>
+              <div class="tl-date">${expStr} · ${d.sisa <= 0 ? 'EXPIRED' : d.sisa+' hari lagi'}</div>
+            </div>
+          </div>`;
+        });
+        html += '</div>';
+      }
+      if (!html) html = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">Belum ada dokumen</p>';
+      el.innerHTML = html;
+    }
+  };
+}
+
+// ===========================
+// OPEN FILE
+// ===========================
+function openFile(url, type) {
+  if (type === 'pdf') window.open(url, '_blank');
+  else { document.getElementById('modalImg').src = url; document.getElementById('imageModal').classList.add('open'); }
+}
+
+// ===========================
+// DELETE DOC
+// ===========================
+function deleteDoc(id) {
+  if (!confirm("Hapus dokumen ini?")) return;
+  const tx = db.transaction("docs", "readwrite");
+  tx.objectStore("docs").delete(id);
+  tx.oncomplete = () => { toast("Dokumen dihapus", "info"); renderList(); updateStats(); renderTimeline(); };
+}
+
+// ===========================
+// DELETE ALL
+// ===========================
+function hapusSemua() {
+  if (!confirm("HAPUS SEMUA DATA? Tindakan ini tidak dapat dibatalkan!")) return;
+  if (!confirm("Yakin? Semua dokumen akan hilang permanen!")) return;
+  const tx = db.transaction("docs", "readwrite");
+  tx.objectStore("docs").clear();
+  tx.oncomplete = () => { toast("Semua data dihapus", "info"); renderList(); updateStats(); renderTimeline(); };
+}
+
+// ===========================
+// TOGGLE PIN
+// ===========================
+function togglePin(id) {
+  const tx = db.transaction("docs", "readwrite");
+  const req = tx.objectStore("docs").get(id);
+  req.onsuccess = (e) => {
+    const d = e.target.result;
+    d.pinned = !d.pinned;
+    tx.objectStore("docs").put(d);
+    tx.oncomplete = () => renderList();
+  };
+}
+
+// ===========================
+// EDIT DOC
+// ===========================
+function openEdit(id) {
+  const req = db.transaction("docs").objectStore("docs").get(id);
+  req.onsuccess = (e) => {
+    const d = e.target.result;
+    document.getElementById('editId').value = d.id;
+    document.getElementById('editCat').value = d.cat;
+    document.getElementById('editName').value = d.name;
+    document.getElementById('editSerial').value = d.serial || '';
+    document.getElementById('editIssue').value = d.issue || '';
+    document.getElementById('editExp').value = d.date;
+    document.getElementById('editNotes').value = d.notes || '';
+    document.getElementById('editModal').classList.add('open');
+  };
+}
+function closeEdit() { document.getElementById('editModal').classList.remove('open'); }
+function saveEdit() {
+  const id = parseInt(document.getElementById('editId').value);
+  const tx = db.transaction("docs", "readwrite");
+  const req = tx.objectStore("docs").get(id);
+  req.onsuccess = (e) => {
+    const d = e.target.result;
+    d.cat = document.getElementById('editCat').value;
+    d.name = document.getElementById('editName').value.trim();
+    d.serial = document.getElementById('editSerial').value.trim();
+    d.issue = document.getElementById('editIssue').value;
+    d.date = document.getElementById('editExp').value;
+    d.notes = document.getElementById('editNotes').value.trim();
+    tx.objectStore("docs").put(d);
+    tx.oncomplete = () => { toast("Perubahan disimpan! ✅", "success"); closeEdit(); renderList(); updateStats(); renderTimeline(); };
+  };
+}
+
+// ===========================
+// DETAIL DOC
+// ===========================
+function showDetail(id) {
+  const req = db.transaction("docs").objectStore("docs").get(id);
+  req.onsuccess = (e) => {
+    const d = e.target.result;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const sisa = Math.ceil((new Date(d.date) - today) / 86400000);
+    document.getElementById('detailTitle').textContent = d.name;
+    const expStr = new Date(d.date).toLocaleDateString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+    const issueStr = d.issue ? new Date(d.issue).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) : '-';
+    const created = d.createdAt ? new Date(d.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) : '-';
+    document.getElementById('detailContent').innerHTML = `
+      <div class="detail-row"><div class="detail-key">Kategori</div><div class="detail-val">${d.cat}</div></div>
+      <div class="detail-row"><div class="detail-key">Nomor Seri</div><div class="detail-val">${d.serial || '-'}</div></div>
+      <div class="detail-row"><div class="detail-key">Tanggal Terbit</div><div class="detail-val">${issueStr}</div></div>
+      <div class="detail-row"><div class="detail-key">Kadaluarsa</div><div class="detail-val">${expStr}</div></div>
+      <div class="detail-row"><div class="detail-key">Status</div><div class="detail-val" style="color:${sisa<=0?'var(--danger)':sisa<=60?'var(--warn)':'var(--success)'}">${sisa<=0?'⚠️ EXPIRED':sisa+' hari tersisa'}</div></div>
+      <div class="detail-row"><div class="detail-key">Catatan</div><div class="detail-val">${d.notes || '-'}</div></div>
+      <div class="detail-row"><div class="detail-key">Lampiran</div><div class="detail-val">${d.attachments ? d.attachments.length + ' file' : '0 file'}</div></div>
+      <div class="detail-row"><div class="detail-key">Ditambahkan</div><div class="detail-val">${created}</div></div>
+      <div class="detail-row"><div class="detail-key">Disematkan</div><div class="detail-val">${d.pinned ? '📌 Ya' : 'Tidak'}</div></div>`;
+    document.getElementById('detailModal').classList.add('open');
+  };
+}
+function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+
+// ===========================
+// SHARE DOC
+// ===========================
+function shareDoc(name, sn, expDate) {
+  const text = `📄 *Dokumen Maritim*\n\n📌 Nama: ${name}\n🔢 No: ${sn || '-'}\n📅 Kadaluarsa: ${expDate}\n\n_Dikirim via DocGuard Maritime_`;
+  if (navigator.share) navigator.share({ title: name, text });
+  else window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+}
+
+// ===========================
+// NOTIFICATIONS
+// ===========================
+function mintaIzinNotif() {
+  if (!('Notification' in window)) { toast("Browser tidak mendukung notifikasi", "error"); return; }
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') {
+      toast("Notifikasi diaktifkan! 🔔", "success");
+      document.getElementById('notifBtn').classList.add('active');
+      document.getElementById('notifBtn').textContent = '✅ Notifikasi Aktif';
+      document.getElementById('toggleNotif').classList.add('on');
+      checkAndNotify();
+    } else {
+      toast("Izin notifikasi ditolak", "error");
+    }
+  });
+}
+function checkNotifPermission() {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const btn = document.getElementById('notifBtn');
+    if (btn) { btn.classList.add('active'); btn.textContent = '✅ Notifikasi Aktif'; }
+    document.getElementById('toggleNotif')?.classList.add('on');
+  }
+}
+function checkAndNotify() {
+  if (!db || Notification.permission !== 'granted') return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  db.transaction("docs").objectStore("docs").openCursor().onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      const d = cursor.value;
+      const sisa = Math.ceil((new Date(d.date) - today) / 86400000);
+      if (sisa === 7) new Notification(`⚠️ Dokumen Hampir Kadaluarsa!`, { body: `${d.name} akan berakhir dalam 7 hari (${new Date(d.date).toLocaleDateString('id-ID')})`, icon: '📄' });
+      else if (sisa === 30) new Notification(`🔔 Perhatian Dokumen`, { body: `${d.name} akan kadaluarsa dalam 30 hari`, icon: '📄' });
+      else if (sisa <= 0) new Notification(`❌ Dokumen EXPIRED!`, { body: `${d.name} sudah kadaluarsa!`, icon: '📄' });
+      cursor.continue();
+    }
+  };
+}
+function scheduleDailyCheck() {
+  const now = new Date(), tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(8, 0, 0, 0);
+  const msUntil = tomorrow - now;
+  setTimeout(() => { checkAndNotify(); setInterval(checkAndNotify, 86400000); }, msUntil);
+}
+
+// ===========================
+// BACKUP & RESTORE
+// ===========================
+async function exportData() {
+  const allDocs = [];
+  db.transaction("docs").objectStore("docs").openCursor().onsuccess = async (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      const attachments = [];
+      for (let a of (cursor.value.attachments || [])) {
+        const b64 = await new Promise(r => { const rd = new FileReader(); rd.onloadend = () => r(rd.result); rd.readAsDataURL(a.blob); });
+        attachments.push({ ...a, blob: b64 });
+      }
+      allDocs.push({ ...cursor.value, attachments });
+      cursor.continue();
+    } else {
+      const json = JSON.stringify({ version: 2, exportDate: new Date().toISOString(), docs: allDocs }, null, 2);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+      const d = new Date().toISOString().slice(0, 10);
+      a.download = `DocGuard_Maritime_Backup_${d}.json`;
+      a.click();
+      toast(`Backup ${allDocs.length} dokumen berhasil! ⬇️`, "success");
+    }
+  };
+}
+function importData() {
+  const file = document.getElementById('importFile').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const data = parsed.docs || parsed; // support both v1 and v2
+      const tx = db.transaction("docs", "readwrite");
+      let count = 0;
+      for (let item of data) {
+        const attachments = [];
+        for (let a of (item.attachments || [])) {
+          if (typeof a.blob === 'string') {
+            const res = await fetch(a.blob); a.blob = await res.blob();
+          }
+          attachments.push(a);
+        }
+        const toSave = { ...item, attachments };
+        delete toSave.id;
+        tx.objectStore("docs").add(toSave);
+        count++;
+      }
+      tx.oncomplete = () => { toast(`${count} dokumen berhasil di-restore! ✅`, "success"); renderList(); updateStats(); renderTimeline(); };
+    } catch(err) { toast("File backup tidak valid!", "error"); }
+  };
+  reader.readAsText(file);
+}
+
+
+// ===========================
+// RESET SERVICE WORKER
+// ===========================
+async function resetSW() {
+  if (!('serviceWorker' in navigator)) { toast('SW tidak didukung browser ini', 'error'); return; }
+  try {
+    // Unregister all SW
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (let reg of regs) await reg.unregister();
+
+    // Clear all caches
+    const keys = await caches.keys();
+    for (let key of keys) await caches.delete(key);
+
+    toast('✅ Service Worker berhasil direset! Halaman akan reload...', 'success', 2500);
+    setTimeout(() => location.reload(true), 2500);
+  } catch(e) {
+    toast('Gagal reset SW: ' + e.message, 'error');
+  }
+}
+
+// ===========================
+// INSTALL PWA
+// ===========================
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  window._installPrompt = e;
+  const btn = document.getElementById('btnInstallApp');
+  if (btn) btn.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  toast('🎉 App berhasil diinstall!', 'success', 5000);
+  window._installPrompt = null;
+  const btn = document.getElementById('btnInstallApp');
+  if (btn) btn.style.display = 'none';
+});
+
+async function installApp() {
+  if (!window._installPrompt) { toast('Prompt install tidak tersedia', 'error'); return; }
+  window._installPrompt.prompt();
+  const { outcome } = await window._installPrompt.userChoice;
+  if (outcome === 'accepted') toast('🎉 Berhasil diinstall!', 'success');
+  window._installPrompt = null;
+  const btn = document.getElementById('btnInstallApp');
+  if (btn) btn.style.display = 'none';
+}
+
+// ===========================
+// PWA DIAGNOSTIK
+// ===========================
+async function runPWADiag() {
+  const el = document.getElementById('pwaDiag');
+  if (!el) return;
+  el.innerHTML = '<p style="color:var(--muted);font-size:12px">Mengecek...</p>';
+  try {
+  const checks = [];
+
+  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  checks.push({ label: 'HTTPS / localhost', ok: isSecure, info: location.origin });
+
+  const swSupport = 'serviceWorker' in navigator;
+  checks.push({ label: 'SW didukung browser', ok: swSupport });
+
+  let swActive = false, swInfo = 'Tidak terdaftar';
+  if (swSupport) {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        swActive = true;
+        const s = reg.active ? 'active' : reg.installing ? 'installing' : reg.waiting ? 'waiting' : 'unknown';
+        swInfo = 'Status: ' + s + ' · Scope: ' + reg.scope;
+      }
+    } catch(e) { swInfo = e.message; }
+  }
+  checks.push({ label: 'Service Worker terdaftar', ok: swActive, info: swInfo });
+
+  const manifestLink = document.querySelector('link[rel="manifest"]');
+  checks.push({ label: 'manifest.json terhubung', ok: !!manifestLink, info: manifestLink ? manifestLink.href : 'Tidak ditemukan' });
+  checks.push({ label: 'Install prompt siap', ok: !!window._installPrompt, info: window._installPrompt ? '✅ Prompt tersedia!' : 'Belum dipicu Chrome (normal)' });
+
+  el.innerHTML = checks.map(c => `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:14px;flex-shrink:0">${c.ok ? '✅' : '❌'}</span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:${c.ok ? 'var(--success)' : 'var(--danger)'}">${c.label}</div>
+        ${c.info ? '<div style="font-size:10px;color:var(--muted);margin-top:2px;word-break:break-all">' + c.info + '</div>' : ''}
+      </div>
+    </div>`).join('');
+
+  const allOk = checks.every(c => c.ok);
+  el.innerHTML += `<div style="margin-top:12px;padding:10px;border-radius:10px;background:${allOk ? 'rgba(0,229,160,0.08)' : 'rgba(255,181,71,0.08)'};border:1px solid ${allOk ? 'rgba(0,229,160,0.2)' : 'rgba(255,181,71,0.2)'};font-size:12px;color:${allOk ? 'var(--success)' : 'var(--warn)'}">
+    ${allOk ? '🎉 Semua syarat terpenuhi! Coba buka menu Chrome → Install App.' : '⚠️ Ada syarat yang belum terpenuhi. Perbaiki item ❌ di atas.'}
+  </div>`;
+  } catch(err) {
+    el.innerHTML = '<p style="color:var(--danger);font-size:12px">❌ Error: ' + err.message + '</p>';
+  }
+}
+
+</script>
+</body>
+</html>
