@@ -291,7 +291,7 @@ body {
   border-radius: 18px; padding: 18px;
   margin-bottom: 12px;
   backdrop-filter: blur(10px);
-  position: relative; overflow: hidden;
+  position: relative;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   animation: cardIn 0.4s ease both;
 }
@@ -1122,7 +1122,7 @@ function renderList() {
           <div class="card-top">
             <span class="card-badge">${d.cat.replace('Dokumen ','').replace(' Maritim','')}</span>
             <div style="display:flex;align-items:center;gap:8px">
-              <button class="pin-btn ${d.pinned?'pinned':''}" onclick="togglePin(${d.id})" title="Pin">📌</button>
+              ${selectMode ? `<div class="doc-checkbox visible${selectedDocs.has(d.id) ? ' checked' : ''}" data-id="${d.id}" onclick="toggleDocSelect(${d.id}, this)">${selectedDocs.has(d.id) ? '✓' : ''}</div>` : `<button class="pin-btn ${d.pinned?'pinned':''}" onclick="togglePin(${d.id})" title="Pin">📌</button>`}
               <span class="days-pill ${pillClass}">${pillText}</span>
             </div>
           </div>
@@ -1143,14 +1143,6 @@ function renderList() {
             <button class="action-btn" onclick="shareDoc('${d.name.replace(/'/g,"\\'")}','${(d.serial||'').replace(/'/g,"\\'")}','${expStr}')">📤 Bagikan</button>
             <button class="action-btn del" onclick="deleteDoc(${d.id})">🗑️</button>
           </div>`;
-        // Tambah checkbox untuk select mode
-        const checkbox = document.createElement('div');
-        checkbox.className = `doc-checkbox${selectMode ? ' visible' : ''}${selectedDocs.has(d.id) ? ' checked' : ''}`;
-        checkbox.dataset.id = d.id;
-        checkbox.innerHTML = selectedDocs.has(d.id) ? '✓' : '';
-        checkbox.onclick = (e) => { e.stopPropagation(); toggleDocSelect(d.id); checkbox.innerHTML = selectedDocs.has(d.id) ? '✓' : ''; };
-        card.style.position = 'relative';
-        card.appendChild(checkbox);
         container.appendChild(card);
       });
     }
@@ -1573,6 +1565,12 @@ function exportBulkICS() {
 // SELECT MODE
 // ===========================
 function toggleSelectMode() {
+  // Cek dulu apakah ada dokumen
+  const cards = document.querySelectorAll('.doc-card');
+  if (!selectMode && cards.length === 0) {
+    toast('Tidak ada dokumen untuk dipilih!', 'error');
+    return;
+  }
   selectMode = !selectMode;
   selectedDocs.clear();
   const btn = document.getElementById('selectModeBtn');
@@ -1592,20 +1590,22 @@ function cancelSelectMode() {
   renderList();
 }
 
-function toggleDocSelect(id) {
+function toggleDocSelect(id, el) {
   if (selectedDocs.has(id)) selectedDocs.delete(id);
   else selectedDocs.add(id);
+  if (el) {
+    el.classList.toggle('checked', selectedDocs.has(id));
+    el.innerHTML = selectedDocs.has(id) ? '✓' : '';
+  }
   updateBulkBar();
-  // Update tampilan checkbox tanpa re-render
-  const cb = document.querySelector(`.doc-checkbox[data-id="${id}"]`);
-  if (cb) cb.classList.toggle('checked', selectedDocs.has(id));
 }
 
 function updateBulkBar() {
   const bar = document.getElementById('bulkBar');
   const count = document.getElementById('bulkCount');
   count.textContent = `${selectedDocs.size} dokumen dipilih`;
-  bar.classList.toggle('show', selectMode);
+  // Bulk bar hanya muncul kalau mode aktif DAN ada minimal 1 dipilih
+  bar.classList.toggle('show', selectMode && selectedDocs.size > 0);
 }
 
 
