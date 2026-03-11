@@ -536,6 +536,51 @@ body {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--wave); border-radius: 2px; }
+
+/* === ICS CHECKBOX === */
+.doc-checkbox {
+  position: absolute; top: 14px; right: 14px;
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid var(--border); background: var(--glass);
+  cursor: pointer; display: none; align-items: center; justify-content: center;
+  font-size: 13px; transition: all 0.2s; z-index: 5; flex-shrink: 0;
+}
+.doc-checkbox.visible { display: flex; }
+.doc-checkbox.checked { background: rgba(59,158,255,0.3); border-color: var(--sky); }
+
+/* === BULK ICS BAR === */
+.bulk-bar {
+  position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%) translateY(100px);
+  width: calc(100% - 32px); max-width: 488px;
+  background: linear-gradient(135deg, var(--wave), var(--foam));
+  border-radius: 16px; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 8px 32px rgba(15,76,129,0.6);
+  z-index: 100; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.bulk-bar.show { transform: translateX(-50%) translateY(0); }
+.bulk-bar-info { font-size: 13px; font-weight: 600; color: white; }
+.bulk-bar-info span { opacity: 0.75; font-size: 11px; display: block; margin-top: 1px; }
+.bulk-bar-btns { display: flex; gap: 8px; }
+.bulk-btn {
+  padding: 8px 14px; border-radius: 10px; border: none;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+}
+.bulk-btn-primary { background: white; color: var(--wave); }
+.bulk-btn-primary:hover { background: var(--horizon); }
+.bulk-btn-cancel { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+.bulk-btn-cancel:hover { background: rgba(255,255,255,0.25); }
+
+/* === SELECT MODE TOGGLE === */
+.select-mode-btn {
+  background: var(--glass); border: 1.5px solid var(--border);
+  color: var(--muted); border-radius: 8px; padding: 5px 10px;
+  cursor: pointer; font-size: 11px; font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s; white-space: nowrap; margin-left: 6px;
+}
+.select-mode-btn:hover { background: rgba(59,158,255,0.15); color: var(--sky); }
+.select-mode-btn.active { background: rgba(59,158,255,0.2); color: var(--sky); border-color: rgba(91,187,255,0.4); }
 </style>
 </head>
 <body>
@@ -569,6 +614,7 @@ body {
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Cari nama, kategori, nomor..." oninput="renderList()">
         <button class="sort-btn" id="sortBtn" onclick="toggleSort()">Sort ↕</button>
+        <button class="select-mode-btn" id="selectModeBtn" onclick="toggleSelectMode()">☑️ Pilih</button>
       </div>
     </div>
     <div class="filter-tabs" id="filterTabs">
@@ -696,6 +742,18 @@ body {
 
 </div><!-- end app -->
 
+<!-- BULK ICS BAR -->
+<div class="bulk-bar" id="bulkBar">
+  <div class="bulk-bar-info">
+    <div id="bulkCount">0 dokumen dipilih</div>
+    <span>Reminder H-30 & H-7 otomatis</span>
+  </div>
+  <div class="bulk-bar-btns">
+    <button class="bulk-btn bulk-btn-cancel" onclick="cancelSelectMode()">Batal</button>
+    <button class="bulk-btn bulk-btn-primary" onclick="exportBulkICS()">📅 Export ICS</button>
+  </div>
+</div>
+
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <button class="nav-item active" id="nav-docs" onclick="switchTab('docs')">
@@ -766,7 +824,10 @@ body {
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="detailTitle">Detail Dokumen</div>
     <div id="detailContent"></div>
-    <button class="btn btn-ghost" onclick="closeDetail()" style="margin-top:16px">Tutup</button>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeDetail()" style="flex:1">Tutup</button>
+      <button class="btn btn-sea" id="detailIcsBtn" onclick="" style="flex:1.5">📅 Simpan ke Kalender</button>
+    </div>
   </div>
 </div>
 
@@ -825,6 +886,8 @@ let sortMode = 'date'; // 'date' or 'name'
 let sortAsc = true;
 let selectedFiles = [];
 let editingDoc = null;
+let selectMode = false;
+let selectedDocs = new Set();
 
 // ===========================
 // TOAST
@@ -1080,6 +1143,14 @@ function renderList() {
             <button class="action-btn" onclick="shareDoc('${d.name.replace(/'/g,"\\'")}','${(d.serial||'').replace(/'/g,"\\'")}','${expStr}')">📤 Bagikan</button>
             <button class="action-btn del" onclick="deleteDoc(${d.id})">🗑️</button>
           </div>`;
+        // Tambah checkbox untuk select mode
+        const checkbox = document.createElement('div');
+        checkbox.className = `doc-checkbox${selectMode ? ' visible' : ''}${selectedDocs.has(d.id) ? ' checked' : ''}`;
+        checkbox.dataset.id = d.id;
+        checkbox.innerHTML = selectedDocs.has(d.id) ? '✓' : '';
+        checkbox.onclick = (e) => { e.stopPropagation(); toggleDocSelect(d.id); checkbox.innerHTML = selectedDocs.has(d.id) ? '✓' : ''; };
+        card.style.position = 'relative';
+        card.appendChild(checkbox);
         container.appendChild(card);
       });
     }
@@ -1289,6 +1360,8 @@ function showDetail(id) {
       <div class="detail-row"><div class="detail-key">Lampiran</div><div class="detail-val">${d.attachments ? d.attachments.length + ' file' : '0 file'}</div></div>
       <div class="detail-row"><div class="detail-key">Ditambahkan</div><div class="detail-val">${created}</div></div>
       <div class="detail-row"><div class="detail-key">Disematkan</div><div class="detail-val">${d.pinned ? '📌 Ya' : 'Tidak'}</div></div>`;
+    // Set tombol ICS dengan data dokumen saat ini
+    document.getElementById('detailIcsBtn').onclick = () => exportSingleICS(d);
     document.getElementById('detailModal').classList.add('open');
   };
 }
@@ -1406,8 +1479,136 @@ function importData() {
 
 
 // ===========================
-// CHECK UPDATE
+// ICS GENERATOR
 // ===========================
+function formatICSDate(dateStr) {
+  // Format: YYYYMMDD
+  return dateStr.replace(/-/g, '');
+}
+
+function generateICSContent(docs) {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//DocGuard Maritime//ID',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ];
+
+  docs.forEach(d => {
+    const uid = `docguard-${d.id || Date.now()}-${Math.random().toString(36).slice(2)}@maritime`;
+    const dtstart = formatICSDate(d.date);
+    const dtend = formatICSDate(d.date);
+    const summary = `⚠️ Dokumen Kadaluarsa: ${d.name}`;
+    const desc = `Dokumen: ${d.name}\\nKategori: ${d.cat}\\nNo: ${d.serial || '-'}\\nKadaluarsa: ${new Date(d.date).toLocaleDateString('id-ID')}`;
+    const now = new Date().toISOString().replace(/[-:.]/g,'').slice(0,15) + 'Z';
+
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTAMP:${now}`,
+      `DTSTART;VALUE=DATE:${dtstart}`,
+      `DTEND;VALUE=DATE:${dtend}`,
+      `SUMMARY:${summary}`,
+      `DESCRIPTION:${desc}`,
+      // Reminder H-30
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:📅 ${d.name} akan kadaluarsa dalam 30 hari!`,
+      'TRIGGER:-P30D',
+      'END:VALARM',
+      // Reminder H-7
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:⚠️ ${d.name} akan kadaluarsa dalam 7 hari!`,
+      'TRIGGER:-P7D',
+      'END:VALARM',
+      'END:VEVENT'
+    );
+  });
+
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function downloadICS(content, filename) {
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// Export single doc ICS dari detail modal
+function exportSingleICS(doc) {
+  const content = generateICSContent([doc]);
+  const safeName = doc.name.replace(/[^a-zA-Z0-9]/g, '_');
+  downloadICS(content, `DocGuard_${safeName}.ics`);
+  toast('📅 File ICS berhasil dibuat!', 'success');
+}
+
+// Export bulk ICS dari dokumen yang dipilih
+function exportBulkICS() {
+  if (selectedDocs.size === 0) { toast('Pilih minimal 1 dokumen!', 'error'); return; }
+  const allDocs = [];
+  const tx = db.transaction("docs");
+  tx.objectStore("docs").openCursor().onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      if (selectedDocs.has(cursor.value.id)) allDocs.push(cursor.value);
+      cursor.continue();
+    } else {
+      if (allDocs.length === 0) { toast('Dokumen tidak ditemukan!', 'error'); return; }
+      const content = generateICSContent(allDocs);
+      const d = new Date().toISOString().slice(0,10);
+      downloadICS(content, `DocGuard_Bulk_${allDocs.length}dok_${d}.ics`);
+      toast(`📅 ${allDocs.length} dokumen berhasil di-export ke kalender!`, 'success');
+      cancelSelectMode();
+    }
+  };
+}
+
+// ===========================
+// SELECT MODE
+// ===========================
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedDocs.clear();
+  const btn = document.getElementById('selectModeBtn');
+  btn.classList.toggle('active', selectMode);
+  btn.textContent = selectMode ? '✕ Selesai' : '☑️ Pilih';
+  updateBulkBar();
+  renderList();
+}
+
+function cancelSelectMode() {
+  selectMode = false;
+  selectedDocs.clear();
+  const btn = document.getElementById('selectModeBtn');
+  btn.classList.remove('active');
+  btn.textContent = '☑️ Pilih';
+  updateBulkBar();
+  renderList();
+}
+
+function toggleDocSelect(id) {
+  if (selectedDocs.has(id)) selectedDocs.delete(id);
+  else selectedDocs.add(id);
+  updateBulkBar();
+  // Update tampilan checkbox tanpa re-render
+  const cb = document.querySelector(`.doc-checkbox[data-id="${id}"]`);
+  if (cb) cb.classList.toggle('checked', selectedDocs.has(id));
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  const count = document.getElementById('bulkCount');
+  count.textContent = `${selectedDocs.size} dokumen dipilih`;
+  bar.classList.toggle('show', selectMode);
+}
+
+
 async function checkUpdate() {
   if (!('serviceWorker' in navigator)) { toast('SW tidak didukung browser ini', 'error'); return; }
   try {
