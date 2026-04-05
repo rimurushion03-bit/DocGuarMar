@@ -537,6 +537,19 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--wave); border-radius: 2px; }
 
+/* === COLLAPSIBLE CARD === */
+.card-collapsed .card-body { display: none; }
+.card-body { overflow: hidden; }
+.card-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.card-chevron {
+  font-size: 11px; color: var(--muted); transition: transform 0.25s ease;
+  margin-left: 6px; flex-shrink: 0;
+}
+.card-collapsed .card-chevron { transform: rotate(-90deg); }
+
 /* === ICS CHECKBOX === */
 .doc-checkbox {
   position: absolute; top: 14px; right: 14px;
@@ -1116,37 +1129,52 @@ function renderList() {
         }
 
         const card = document.createElement('div');
-        card.className = `doc-card status-${statusClass}`;
+        card.className = `doc-card status-${statusClass} card-collapsed`;
         card.style.animationDelay = `${idx * 0.05}s`;
         card.innerHTML = `
-          <div class="card-top">
-            <span class="card-badge">${d.cat.replace('Dokumen ','').replace(' Maritim','')}</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              ${selectMode ? `<div class="doc-checkbox visible${selectedDocs.has(d.id) ? ' checked' : ''}" data-id="${d.id}" onclick="toggleDocSelect(${d.id}, this)">${selectedDocs.has(d.id) ? '✓' : ''}</div>` : `<button class="pin-btn ${d.pinned?'pinned':''}" onclick="togglePin(${d.id})" title="Pin">📌</button>`}
+          <div class="card-header-row" onclick="toggleCard(this)">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+              <span class="card-badge" style="flex-shrink:0">${d.cat.replace('Dokumen ','').replace(' Maritim','')}</span>
+              <div class="card-name" style="margin:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              ${selectMode ? `<div class="doc-checkbox visible${selectedDocs.has(d.id) ? ' checked' : ''}" data-id="${d.id}" onclick="event.stopPropagation();toggleDocSelect(${d.id}, this)">${selectedDocs.has(d.id) ? '✓' : ''}</div>` : `<button class="pin-btn ${d.pinned?'pinned':''}" onclick="event.stopPropagation();togglePin(${d.id})" title="Pin">📌</button>`}
               <span class="days-pill ${pillClass}">${pillText}</span>
+              <span class="card-chevron">▼</span>
             </div>
           </div>
-          <div class="card-name">${d.name}</div>
-          <div class="card-meta">
-            ${d.serial ? `<span>🔢 ${d.serial}</span>` : ''}
-            <span>📅 Exp: ${expStr}</span>
-            ${d.notes ? `<span>💬 ${d.notes}</span>` : ''}
-          </div>
-          ${thumbHtml}
-          <div class="validity-bar">
-            <div class="validity-track"><div class="validity-fill" style="width:${pct}%;background:${fillColor}"></div></div>
-            <div class="validity-meta"><span>Validitas</span><span>${pct}%</span></div>
-          </div>
-          <div class="card-actions">
-            <button class="action-btn" onclick="showDetail(${d.id})">🔍 Detail</button>
-            <button class="action-btn" onclick="openEdit(${d.id})">✏️ Edit</button>
-            <button class="action-btn" onclick="shareDoc('${d.name.replace(/'/g,"\\'")}','${(d.serial||'').replace(/'/g,"\\'")}','${expStr}')">📤 Bagikan</button>
-            <button class="action-btn del" onclick="deleteDoc(${d.id})">🗑️</button>
+          <div class="card-body">
+            <div style="margin-top:10px">
+              <div class="card-meta">
+                ${d.serial ? `<span>🔢 ${d.serial}</span>` : ''}
+                <span>📅 Exp: ${expStr}</span>
+                ${d.notes ? `<span>💬 ${d.notes}</span>` : ''}
+              </div>
+              ${thumbHtml}
+              <div class="validity-bar">
+                <div class="validity-track"><div class="validity-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+                <div class="validity-meta"><span>Validitas</span><span>${pct}%</span></div>
+              </div>
+              <div class="card-actions">
+                <button class="action-btn" onclick="showDetail(${d.id})">🔍 Detail</button>
+                <button class="action-btn" onclick="openEdit(${d.id})">✏️ Edit</button>
+                <button class="action-btn" onclick="shareDoc('${d.name.replace(/'/g,"\\'")}','${(d.serial||'').replace(/'/g,"\\'")}','${expStr}')">📤 Bagikan</button>
+                <button class="action-btn del" onclick="deleteDoc(${d.id})">🗑️</button>
+              </div>
+            </div>
           </div>`;
         container.appendChild(card);
       });
     }
   };
+}
+
+// ===========================
+// COLLAPSIBLE CARD
+// ===========================
+function toggleCard(headerEl) {
+  const card = headerEl.closest('.doc-card');
+  card.classList.toggle('card-collapsed');
 }
 
 // ===========================
